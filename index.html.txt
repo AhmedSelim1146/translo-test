@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Translo | اختبار تحديد مستوى اللغة الإنجليزية</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Google Fonts: Cairo for Arabic UI & Inter for English Content -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<script>
+tailwind.config = {
+theme: {
+extend: {
+fontFamily: {
+arabic: ['Cairo', 'sans-serif'],
+english: ['Inter', 'sans-serif'],
+},
+colors: {
+brand: {
+navy: '#0f172a',
+indigo: '#1e1b4b',
+primary: '#2563eb',
+teal: '#0d9488',
+emerald: '#10b981',
+}
+}
+}
+}
+};
+</script>
+
+<style>
+body {
+font-family: 'Cairo', sans-serif;
+background-color: #f8fafc;
+color: #0f172a;
+}
+.en-text {
+font-family: 'Inter', sans-serif;
+direction: ltr;
+text-align: left;
+}
+/* Audio Waveform Animation */
+@keyframes wavePulse {
+0%, 100% { height: 6px; }
+50% { height: 24px; }
+}
+.wave-bar {
+width: 4px;
+height: 6px;
+border-radius: 9999px;
+background-color: #0d9488;
+transition: height 0.2s ease;
+}
+.wave-active .wave-bar:nth-child(1) { animation: wavePulse 0.8s infinite ease-in-out 0.0s; }
+.wave-active .wave-bar:nth-child(2) { animation: wavePulse 0.8s infinite ease-in-out 0.15s; }
+.wave-active .wave-bar:nth-child(3) { animation: wavePulse 0.8s infinite ease-in-out 0.3s; }
+.wave-active .wave-bar:nth-child(4) { animation: wavePulse 0.8s infinite ease-in-out 0.45s; }
+.wave-active .wave-bar:nth-child(5) { animation: wavePulse 0.8s infinite ease-in-out 0.2s; }
+.wave-active .wave-bar:nth-child(6) { animation: wavePulse 0.8s infinite ease-in-out 0.35s; }
+.wave-active .wave-bar:nth-child(7) { animation: wavePulse 0.8s infinite ease-in-out 0.1s; }
+
+/* Print Styles for Result Certificate */
+@media print {
+.no-print { display: none !important; }
+body { background: white !important; }
+.print-shadow-none { box-shadow: none !important; border: 2px solid #cbd5e1 !important; }
+}
+</style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-teal-100 selection:text-teal-900">
+
+<!-- Top Sticky Header with Translo Branding -->
+<header class="sticky top-0 z-40 bg-slate-900 text-white shadow-lg border-b border-slate-800">
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+<!-- Brand Logo & Name -->
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-blue-600 flex items-center justify-center shadow-md shadow-teal-500/20">
+<!-- Custom SVG Logo Icon -->
+<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+</svg>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="en-text text-xl sm:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white via-teal-100 to-teal-300 bg-clip-text text-transparent">Translo</span>
+<span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">CEFR A1–C1</span>
+</div>
+<p class="text-xs text-slate-400 hidden sm:block">منصة التقييم اللغوي والحلول التعليمية الاحترافية</p>
+</div>
+</div>
+
+<!-- Test Status Controls (Shown during active test) -->
+<div id="header-test-controls" class="hidden flex items-center gap-3 sm:gap-5">
+<!-- Timer -->
+<div class="flex items-center gap-2 bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl text-sm">
+<svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<circle cx="12" cy="12" r="10"></circle>
+<polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+<span id="timer-display" class="en-text font-semibold text-slate-100">30:00</span>
+</div>
+
+<!-- Answered Counter -->
+<div class="hidden md:flex items-center gap-2 bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl text-sm">
+<span class="text-slate-400">الإجابات:</span>
+<span id="answered-badge" class="font-bold text-teal-400 en-text">0 / 50</span>
+</div>
+
+<!-- Question Navigator Toggle Button -->
+<button type="button" onclick="toggleNavigatorModal()" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition">
+<svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<rect x="3" y="3" width="7" height="7" rx="1"></rect>
+<rect x="14" y="3" width="7" height="7" rx="1"></rect>
+<rect x="14" y="14" width="7" height="7" rx="1"></rect>
+<rect x="3" y="14" width="7" height="7" rx="1"></rect>
+</svg>
+<span>خريطة الأسئلة</span>
+</button>
+</div>
+</div>
+
+<!-- Overall Progress Bar (Shown during active test) -->
+<div id="header-progress-container" class="hidden w-full bg-slate-800 h-1.5">
+<div id="overall-progress-bar" class="bg-gradient-to-l from-teal-400 to-blue-500 h-1.5 transition-all duration-300" style="width: 0%"></div>
+</div>
+</header>
+
+<!-- Custom Non-Blocking Toast / Notification Banner -->
+<div id="toast-banner" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden max-w-md w-[92%] bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center justify-between gap-3 transition-all">
+<div class="flex items-center gap-2.5 text-sm">
+<span id="toast-icon" class="w-2.5 h-2.5 rounded-full bg-teal-400 shrink-0"></span>
+<span id="toast-message">رسالة تنبيه</span>
+</div>
+<button type="button" onclick="hideToast()" class="text-slate-400 hover:text-white text-xs font-bold px-2 py-1">إغلاق</button>
+</div>
+
+<!-- Main Content Container -->
+<main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+<!-- ==================== VIEW 1: WELCOME SCREEN ==================== -->
+<section id="view-welcome" class="max-w-4xl mx-auto">
+<div class="bg-white rounded-3xl shadow-xl shadow-slate-200/70 border border-slate-200/80 overflow-hidden">
+<!-- Hero Banner -->
+<div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-10 relative overflow-hidden">
+<div class="absolute -left-16 -top-16 w-64 h-64 rounded-full bg-teal-500/10 blur-2xl pointer-events-none"></div>
+<div class="absolute -right-16 -bottom-16 w-64 h-64 rounded-full bg-blue-500/10 blur-2xl pointer-events-none"></div>
+
+<div class="relative z-10">
+<span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/20 border border-teal-400/30 text-teal-300 text-xs font-bold mb-4">
+<span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
+تقييم معتمد وفق الإطار الأوروبي المرجعي (CEFR)
+</span>
+<h1 class="text-2xl sm:text-4xl font-extrabold leading-tight mb-3">
+اختبار تحديد مستوى اللغة الإنجليزية الشامل من <span class="en-text text-teal-400">Translo</span>
+</h1>
+<p class="text-slate-300 text-sm sm:text-base max-w-2xl leading-relaxed">
+اكتشف مستواك الحقيقي في اللغة الإنجليزية بدقة عبر تقييم تفاعلي متكامل مكون من <strong class="text-white">50 سؤالاً</strong> متدرج الصعوبة من المستوى المبتدئ (<span class="en-text">A1</span>) وحتى المتقدم (<span class="en-text">C1</span>).
+</p>
+</div>
+</div>
+
+<!-- Test Structure Overview Cards -->
+<div class="p-6 sm:p-8">
+<h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+<span class="w-1.5 h-6 rounded-full bg-teal-500"></span>
+تقسيم أقسام الاختبار (50 سؤالاً)
+</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+<!-- Section 1 Card -->
+<div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-5 hover:border-teal-400 transition">
+<div class="flex items-center justify-between mb-3">
+<div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+</svg>
+</div>
+<span class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-teal-600 text-white">15 سؤالاً</span>
+</div>
+<h3 class="font-bold text-slate-900 mb-1">1. مهارة الاستماع (Listening)</h3>
+<p class="text-xs text-slate-600 leading-relaxed">4 مقاطع صوتية تفاعلية تحاكي مواقف الحياة والعمل مع إمكانية التحكم في سرعة الصوت وإعادة التشغيل.</p>
+</div>
+
+<!-- Section 2 Card -->
+<div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-5 hover:border-blue-400 transition">
+<div class="flex items-center justify-between mb-3">
+<div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+</svg>
+</div>
+<span class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-blue-600 text-white">15 سؤالاً</span>
+</div>
+<h3 class="font-bold text-slate-900 mb-1">2. فهم المقروء (Reading)</h3>
+<p class="text-xs text-slate-600 leading-relaxed">3 قطع قراءة متدرجة المستوى (مبتدئ، متوسط، متقدم) بواقع 5 أسئلة لكل قطعة لقياس الفهم التحليلي.</p>
+</div>
+
+<!-- Section 3 Card -->
+<div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-5 hover:border-indigo-400 transition">
+<div class="flex items-center justify-between mb-3">
+<div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+</svg>
+</div>
+<span class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-indigo-600 text-white">20 سؤالاً</span>
+</div>
+<h3 class="font-bold text-slate-900 mb-1">3. القواعد والمفردات</h3>
+<p class="text-xs text-slate-600 leading-relaxed">20 سؤالاً شاملاً يغطي الأزمنة، الروابط، الأفعال المركبة، والمفردات الأكاديمية عبر جميع المستويات.</p>
+</div>
+</div>
+
+<!-- Optional Candidate Details Form -->
+<div class="bg-slate-50/80 border border-slate-200 rounded-2xl p-5 sm:p-6 mb-6">
+<h3 class="text-sm font-bold text-slate-800 mb-1">بيانات المتقدم للاختبار (اختياري - تُطبع في شهادة النتيجة)</h3>
+<p class="text-xs text-slate-500 mb-4">أدخل اسمك ليظهر في تقرير النتيجة النهائي الخاص بشركة Translo.</p>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div>
+<label for="candidate-name" class="block text-xs font-bold text-slate-700 mb-1.5">الاسم الكامل</label>
+<input id="candidate-name" type="text" placeholder="مثال: أحمد محمد علي" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" />
+</div>
+<div>
+<label for="candidate-contact" class="block text-xs font-bold text-slate-700 mb-1.5">البريد الإلكتروني أو رقم الهاتف</label>
+<input id="candidate-contact" type="text" placeholder="name@example.com / 01xxxxxxxxx" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" />
+</div>
+</div>
+</div>
+
+<!-- Instructions & Start CTA -->
+<div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-slate-100">
+<div class="flex items-center gap-4 text-xs text-slate-600">
+<span class="flex items-center gap-1.5">
+<svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+المدة المقترحة: 30 دقيقة
+</span>
+<span class="flex items-center gap-1.5">
+<svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+تصحيح فوري وتقرير تفصيلي
+</span>
+</div>
+
+<button type="button" onclick="startTest()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-500 hover:to-blue-500 text-white font-bold px-8 py-3.5 rounded-2xl shadow-lg shadow-teal-600/25 transition transform active:scale-[0.99] cursor-pointer">
+<span>ابدأ الاختبار الآن</span>
+<svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+</svg>
+</button>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ==================== VIEW 2: ACTIVE TEST INTERFACE ==================== -->
+<section id="view-test" class="hidden space-y-6">
+
+<!-- Section Navigation Pills -->
+<div class="bg-white rounded-2xl p-2 shadow-sm border border-slate-200 grid grid-cols-3 gap-2">
+<button type="button" id="tab-listening" onclick="jumpToSection('listening')" class="section-tab flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer">
+<span>1. الاستماع</span>
+<span id="count-listening" class="en-text text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">0/15</span>
+</button>
+<button type="button" id="tab-reading" onclick="jumpToSection('reading')" class="section-tab flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer">
+<span>2. القراءة</span>
+<span id="count-reading" class="en-text text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">0/15</span>
+</button>
+<button type="button" id="tab-grammar" onclick="jumpToSection('grammar')" class="section-tab flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer">
+<span>3. القواعد والمفردات</span>
+<span id="count-grammar" class="en-text text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">0/20</span>
+</button>
+</div>
+
+<!-- Main Question Workspace -->
+<div id="test-workspace" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+<!-- Left/Top Stimulus Panel (Used for Listening Audio Player or Reading Passage) -->
+<div id="stimulus-panel" class="lg:col-span-5 bg-white rounded-3xl shadow-md border border-slate-200 p-5 sm:p-6 hidden">
+<!-- Dynamically populated for Listening or Reading -->
+</div>
+
+<!-- Right/Main Question Card -->
+<div id="question-panel" class="lg:col-span-7 bg-white rounded-3xl shadow-md border border-slate-200 p-5 sm:p-7">
+<!-- Question Meta Header -->
+<div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-100">
+<div class="flex items-center gap-2">
+<span id="q-number-badge" class="bg-slate-900 text-white text-xs sm:text-sm font-bold px-3 py-1 rounded-xl">سؤال 1 من 50</span>
+<span id="q-section-label" class="text-xs font-semibold text-teal-700 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-xl">قسم الاستماع</span>
+</div>
+<span id="q-level-badge" class="en-text text-xs font-bold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200">Level: A1</span>
+</div>
+
+<!-- English Question Prompt -->
+<div class="mb-6">
+<p id="q-instruction-ar" class="text-xs text-slate-500 mb-2">اختر الإجابة الصحيحة باللغة الإنجليزية:</p>
+<h2 id="q-prompt-en" class="en-text text-lg sm:text-xl font-bold text-slate-900 leading-relaxed">
+Question text appears here...
+</h2>
+</div>
+
+<!-- Options Container (English LTR) -->
+<div id="q-options-container" class="space-y-3 mb-8">
+<!-- Options rendered via JS -->
+</div>
+
+<!-- Navigation Footer -->
+<div class="flex flex-wrap items-center justify-between gap-3 pt-5 border-t border-slate-100">
+<button type="button" id="btn-prev" onclick="prevQuestion()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm transition disabled:opacity-40 disabled:pointer-events-none cursor-pointer">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+<span>السابق</span>
+</button>
+
+<div class="flex items-center gap-2.5">
+<button type="button" id="btn-next" onclick="nextQuestion()" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm transition cursor-pointer">
+<span>التالي</span>
+<svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+</button>
+
+<button type="button" id="btn-submit-test" onclick="openSubmitConfirmModal()" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold text-sm shadow-md shadow-teal-600/20 transition cursor-pointer">
+<span>إنهاء الاختبار وعرض النتيجة</span>
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+</button>
+</div>
+</div>
+</div>
+
+</div>
+</section>
+
+<!-- ==================== VIEW 3: RESULTS & CEFR CERTIFICATE ==================== -->
+<section id="view-results" class="hidden max-w-5xl mx-auto space-y-6">
+
+<!-- Official Translo Result Certificate Card -->
+<div id="certificate-card" class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden print-shadow-none">
+<!-- Certificate Header -->
+<div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+<div>
+<div class="flex items-center gap-2.5 mb-2">
+<span class="en-text text-2xl font-extrabold text-teal-400">Translo</span>
+<span class="text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-slate-200 border border-white/15">تقرير تحديد المستوى الرسمي</span>
+</div>
+<h2 class="text-xl sm:text-2xl font-bold">نتيجة اختبار قياس مستوى اللغة الإنجليزية</h2>
+<p id="res-candidate-meta" class="text-xs sm:text-sm text-slate-300 mt-1">التاريخ: —</p>
+</div>
+
+<!-- CEFR Level Badge -->
+<div class="bg-white/10 backdrop-blur-md border border-teal-400/40 rounded-2xl px-5 py-3 text-center min-w-[150px]">
+<span class="block text-[11px] text-teal-300 font-bold mb-0.5">المستوى المعتمد (CEFR)</span>
+<span id="res-cefr-code" class="en-text block text-3xl sm:text-4xl font-extrabold text-white tracking-tight">B1</span>
+<span id="res-cefr-title" class="en-text block text-xs font-semibold text-teal-200">Intermediate</span>
+</div>
+</div>
+
+<!-- Score Summary & Description -->
+<div class="p-6 sm:p-8">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center mb-8">
+<!-- Total Score Box -->
+<div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-center">
+<span class="text-xs font-bold text-slate-500 block mb-1">الدرجة الكلية</span>
+<div class="en-text text-4xl font-extrabold text-slate-900">
+<span id="res-total-score">0</span><span class="text-xl text-slate-400"> / 50</span>
+</div>
+<span id="res-percentage" class="inline-block mt-2 text-xs font-bold px-3 py-1 rounded-full bg-teal-100 text-teal-800 en-text">0%</span>
+</div>
+
+<!-- Level Proficiency Description -->
+<div class="md:col-span-2 bg-teal-50/60 border border-teal-200/80 rounded-2xl p-5">
+<h3 id="res-level-heading" class="font-bold text-teal-950 text-base sm:text-lg mb-1.5">تقييم المستوى اللغوي</h3>
+<p id="res-level-desc" class="text-sm text-slate-700 leading-relaxed">
+وصف المستوى يظهر هنا...
+</p>
+</div>
+</div>
+
+<!-- Section-by-Section Performance Breakdown -->
+<h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+<span class="w-1.5 h-5 rounded-full bg-blue-600"></span>
+تحليل الأداء حسب المهارات
+</h3>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+<!-- Listening Breakdown -->
+<div class="border border-slate-200 rounded-2xl p-4">
+<div class="flex items-center justify-between text-sm font-bold mb-2">
+<span class="text-slate-700">1. الاستماع (Listening)</span>
+<span id="res-listening-score" class="en-text text-teal-700">0 / 15</span>
+</div>
+<div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+<div id="res-listening-bar" class="bg-teal-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+</div>
+</div>
+
+<!-- Reading Breakdown -->
+<div class="border border-slate-200 rounded-2xl p-4">
+<div class="flex items-center justify-between text-sm font-bold mb-2">
+<span class="text-slate-700">2. القراءة (Reading)</span>
+<span id="res-reading-score" class="en-text text-blue-700">0 / 15</span>
+</div>
+<div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+<div id="res-reading-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+</div>
+</div>
+
+<!-- Grammar & Vocab Breakdown -->
+<div class="border border-slate-200 rounded-2xl p-4">
+<div class="flex items-center justify-between text-sm font-bold mb-2">
+<span class="text-slate-700">3. القواعد والمفردات</span>
+<span id="res-grammar-score" class="en-text text-indigo-700">0 / 20</span>
+</div>
+<div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+<div id="res-grammar-bar" class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+</div>
+</div>
+</div>
+
+<!-- Action Buttons (No Print) -->
+<div class="no-print flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-100">
+<div class="flex flex-wrap items-center gap-2.5">
+<button type="button" onclick="toggleAnswerReview()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition cursor-pointer">
+<svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+<span id="toggle-review-text">عرض مراجعة الإجابات والتصحيح</span>
+</button>
+
+<button type="button" onclick="copyResultSummary()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold transition cursor-pointer">
+<svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>
+<span>نسخ النتيجة</span>
+</button>
+
+<button type="button" onclick="window.print()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold transition cursor-pointer">
+<svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+<span>طباعة التقرير</span>
+</button>
+</div>
+
+<button type="button" onclick="retakeTest()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-sm font-bold transition cursor-pointer">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+<span>إعادة الاختبار</span>
+</button>
+</div>
+</div>
+</div>
+
+<!-- Detailed Answer Review Container -->
+<div id="answer-review-section" class="hidden bg-white rounded-3xl shadow-lg border border-slate-200 p-6 sm:p-8 space-y-5">
+<div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
+<div>
+<h3 class="text-lg font-bold text-slate-900">المراجعة التفصيلية لجميع الأسئلة (50 سؤالاً)</h3>
+<p class="text-xs text-slate-500">توضح الإجابة الصحيحة، إجابتك المختارة، والشرح المبسط لكل سؤال.</p>
+</div>
+<div class="flex items-center gap-2 text-xs font-bold">
+<button type="button" onclick="renderReviewList('all')" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white cursor-pointer">الكل (50)</button>
+<button type="button" onclick="renderReviewList('wrong')" class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 cursor-pointer">الأخطاء فقط</button>
+</div>
+</div>
+
+<div id="review-items-list" class="space-y-4">
+<!-- Populated dynamically -->
+</div>
+</div>
+
+</section>
+
+</main>
+
+<!-- Footer -->
+<footer class="no-print bg-white border-t border-slate-200 py-4 mt-10">
+<div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+<div class="flex items-center gap-2">
+<span class="en-text font-extrabold text-slate-800 text-sm">Translo</span>
+<span>— نظام تقييم الكفاءة اللغوية الذكي</span>
+</div>
+<span>جميع الحقوق محفوظة © 2026 Translo</span>
+</div>
+</footer>
+
+<!-- ==================== MODAL 1: QUESTION NAVIGATOR GRID ==================== -->
+<div id="navigator-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+<div class="bg-white rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+<div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+<div>
+<h3 class="font-bold text-base">خريطة التنقل السريع بين الأسئلة</h3>
+<p class="text-xs text-slate-400">اضغط على رقم أي سؤال للانتقال إليه مباشرة</p>
+</div>
+<button type="button" onclick="toggleNavigatorModal()" class="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+</button>
+</div>
+
+<div class="p-6 overflow-y-auto space-y-5">
+<div class="flex flex-wrap items-center gap-4 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200">
+<span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-teal-600 inline-block"></span> تمت الإجابة</span>
+<span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-slate-900 inline-block"></span> السؤال الحالي</span>
+<span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-white border border-slate-300 inline-block"></span> لم يُجب بعد</span>
+</div>
+
+<div>
+<h4 class="text-xs font-bold text-teal-700 mb-2">القسم الأول: الاستماع (1 – 15)</h4>
+<div id="nav-grid-listening" class="grid grid-cols-5 sm:grid-cols-8 gap-2"></div>
+</div>
+
+<div>
+<h4 class="text-xs font-bold text-blue-700 mb-2">القسم الثاني: القراءة (16 – 30)</h4>
+<div id="nav-grid-reading" class="grid grid-cols-5 sm:grid-cols-8 gap-2"></div>
+</div>
+
+<div>
+<h4 class="text-xs font-bold text-indigo-700 mb-2">القسم الثالث: القواعد والمفردات (31 – 50)</h4>
+<div id="nav-grid-grammar" class="grid grid-cols-5 sm:grid-cols-10 gap-2"></div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ==================== MODAL 2: SUBMIT CONFIRMATION ==================== -->
+<div id="submit-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+<div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+<div class="w-12 h-12 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center mb-4">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+</div>
+<h3 class="text-lg font-extrabold text-slate-900 mb-1">هل أنت متأكد من إنهاء الاختبار؟</h3>
+<p id="submit-modal-summary" class="text-sm text-slate-600 leading-relaxed mb-6">
+لقد أجبت على 0 من أصل 50 سؤالاً.
+</p>
+<div class="flex items-center justify-end gap-3">
+<button type="button" onclick="closeSubmitConfirmModal()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-sm font-bold hover:bg-slate-50 cursor-pointer">
+مراجعة الأسئلة
+</button>
+<button type="button" onclick="finalizeAndGradeTest()" class="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-sm font-bold shadow-md cursor-pointer">
+اعتماد وعرض النتيجة
+</button>
+</div>
+</div>
+</div>
+
+<!-- ==================== APPLICATION LOGIC & 50-QUESTION BANK ==================== -->
+<script>
+// 1. LISTENING PASSAGES (4 Audio Tracks covering 15 Questions)
+const listeningTracks = {
+L1: {
+id: "L1",
+title: "Track 1: At the Airport Check-in Desk",
+level: "A1–A2",
+script: "Agent: Good morning! Welcome to SkyLine Airways. Where are you flying today? Passenger: Good morning. I am flying to London on flight BA 402. Agent: May I see your passport and booking confirmation, please? Passenger: Here you are. Also, can I have a window seat? Agent: Let me check. Yes, seat 14A is available. Do you have any bags to check in? Passenger: Just this blue suitcase. Agent: Thank you. Your flight boards at Gate 9 at ten-thirty. Have a pleasant journey!"
+},
+L2: {
+id: "L2",
+title: "Track 2: Rescheduling a Team Meeting",
+level: "B1",
+script: "Hi Daniel, this is Sarah from the marketing department. I'm calling about tomorrow morning's product launch meeting. Unfortunately, our lead designer is stuck in traffic on his way back from the regional conference and won't arrive until noon. Could we push the meeting back from 9:30 AM to 2:00 PM in Conference Room B? Please let me know if that works with your schedule, and I will update the calendar invite for everyone else."
+},
+L3: {
+id: "L3",
+title: "Track 3: Podcast on Remote Work Trends",
+level: "B2",
+script: "Welcome back to Future Workplace Radio. Today we're examining why hybrid work models have outperformed fully remote setups in recent productivity studies. While employees overwhelmingly appreciate the flexibility of working from home two or three days a week, managers report that spontaneous collaboration and mentorship suffer when teams never meet in person. As a result, forward-thinking companies are redesigning their offices into collaborative hubs rather than rows of isolated desks."
+},
+L4: {
+id: "L4",
+title: "Track 4: Lecture on Urban Heat Islands",
+level: "C1",
+script: "In today's environmental urbanism seminar, we'll address the urban heat island effect—a phenomenon wherein metropolitan areas exhibit significantly higher temperatures than their surrounding rural counterparts. This disparity stems primarily from the replacement of natural vegetation with heat-absorbing asphalt and concrete, compounded by waste heat generated from vehicular traffic and air conditioning systems. Mitigating this requires integrating reflective roofing materials and expanding urban tree canopies."
+}
+};
+
+// 2. READING PASSAGES (3 Passages covering 15 Questions: 5 each)
+const readingPassages = {
+R1: {
+id: "R1",
+title: "Passage 1: A Day in the Life of a City Baker",
+level: "A1–A2 (Elementary)",
+text: "Marco owns a small bakery in the center of Florence. Every morning, he wakes up at 4:00 AM while the city is still quiet and dark. He walks ten minutes from his apartment to the bakery and turns on the large ovens. By 5:30 AM, the warm smell of fresh bread and croissants fills the street. Marco's sister, Elena, arrives at 6:30 AM to arrange the pastries in the display window and prepare espresso for the early customers. Their busiest time is between 7:30 AM and 9:00 AM, when office workers and students stop by for breakfast before starting their day. Even though the work is tiring, Marco loves seeing his regular customers smile when they take their first bite."
+},
+R2: {
+id: "R2",
+title: "Passage 2: The Rise of Vertical Farming",
+level: "B1–B2 (Intermediate)",
+text: "As the global population continues to grow and arable land becomes scarcer, agricultural innovators are turning upward through vertical farming. Instead of spreading crops across vast fields, vertical farms cultivate plants in stacked layers inside climate-controlled warehouses or skyscrapers. Using hydroponic and aeroponic systems, these facilities deliver nutrient-rich water directly to plant roots, reducing water consumption by up to 90 percent compared to traditional agriculture. Furthermore, because crops are grown indoors under precisely calibrated LED lights, harvests are immune to droughts, frosts, and seasonal shifts. Critics point out that high electricity costs remain a major hurdle, yet rapid advancements in renewable energy are steadily making urban vertical farms commercially viable."
+},
+R3: {
+id: "R3",
+title: "Passage 3: Cognitive Bias in Decision-Making",
+level: "B2–C1 (Advanced)",
+text: "Human beings routinely overestimate the objectivity of their judgment, unaware that subtle cognitive biases persistently shape their choices. Among the most pervasive of these is confirmation bias—the unconscious tendency to seek out, interpret, and recall information in a manner that validates pre-existing beliefs while discounting contradictory evidence. In corporate boardrooms and scientific inquiry alike, this predisposition can foster intellectual echo chambers and impede strategic adaptability. Overcoming confirmation bias demands deliberate metacognitive effort: actively soliciting dissenting perspectives, establishing objective evaluation criteria prior to reviewing data, and treating initial hypotheses as provisional rather than definitive."
+}
+};
+
+// 3. COMPLETE 50 QUESTIONS BANK (15 Listening + 15 Reading + 20 Grammar/Vocab)
+const questions = [
+// ================= SECTION 1: LISTENING (15 Questions) =================
+// Track L1 (Q1-Q4)
+{
+id: 1, section: "listening", trackId: "L1", level: "A1",
+prompt: "Where is the passenger traveling to?",
+options: ["Paris", "London", "New York", "Madrid"],
+correct: 1,
+explanation: "The passenger explicitly states: 'I am flying to London on flight BA 402.'"
+},
+{
+id: 2, section: "listening", trackId: "L1", level: "A1",
+prompt: "What kind of seat does the passenger ask for?",
+options: ["An aisle seat", "A middle seat", "A window seat", "A first-class seat"],
+correct: 2,
+explanation: "The passenger asks: 'Also, can I have a window seat?' and is assigned seat 14A."
+},
+{
+id: 3, section: "listening", trackId: "L1", level: "A2",
+prompt: "How many bags is the passenger checking in?",
+options: ["None", "One blue suitcase", "Two black bags", "One backpack"],
+correct: 1,
+explanation: "When asked about check-in bags, the passenger replies: 'Just this blue suitcase.'"
+},
+{
+id: 4, section: "listening", trackId: "L1", level: "A2",
+prompt: "When and where does the flight board?",
+options: ["Gate 4 at 10:00", "Gate 9 at 10:30", "Gate 14 at 11:30", "Gate 2 at 9:30"],
+correct: 1,
+explanation: "The agent confirms: 'Your flight boards at Gate 9 at ten-thirty.'"
+},
+
+// Track L2 (Q5-Q8)
+{
+id: 5, section: "listening", trackId: "L2", level: "B1",
+prompt: "Why does Sarah want to reschedule tomorrow's meeting?",
+options: [
+"Conference Room B is unavailable",
+"Daniel is out of the office",
+"The lead designer is delayed in traffic",
+"The product launch has been canceled"
+],
+correct: 2,
+explanation: "Sarah explains that the lead designer is stuck in traffic returning from a regional conference."
+},
+{
+id: 6, section: "listening", trackId: "L2", level: "B1",
+prompt: "What new time does Sarah propose for the meeting?",
+options: ["9:30 AM", "12:00 PM", "2:00 PM", "4:00 PM"],
+correct: 2,
+explanation: "She asks: 'Could we push the meeting back from 9:30 AM to 2:00 PM?'"
+},
+{
+id: 7, section: "listening", trackId: "L2", level: "B1",
+prompt: "Which department does Sarah work in?",
+options: ["Human Resources", "Marketing", "Sales", "IT Support"],
+correct: 1,
+explanation: "At the beginning of the message, she introduces herself as 'Sarah from the marketing department.'"
+},
+{
+id: 8, section: "listening", trackId: "L2", level: "B1",
+prompt: "What will Sarah do once Daniel confirms his availability?",
+options: [
+"Book a flight for the designer",
+"Cancel the regional conference",
+"Update the calendar invite for the team",
+"Send the final product samples"
+],
+correct: 2,
+explanation: "She mentions: 'I will update the calendar invite for everyone else.'"
+},
+
+// Track L3 (Q9-Q12)
+{
+id: 9, section: "listening", trackId: "L3", level: "B2",
+prompt: "According to the podcast, why do hybrid work models outperform fully remote setups?",
+options: [
+"They eliminate the need for office buildings",
+"They combine flexibility with in-person collaboration",
+"They require employees to work longer hours",
+"They reduce internet expenses for companies"
+],
+correct: 1,
+explanation: "The speaker notes employees enjoy home flexibility while in-person time preserves collaboration and mentorship."
+},
+{
+id: 10, section: "listening", trackId: "L3", level: "B2",
+prompt: "What challenge do managers report when teams never meet in person?",
+options: [
+"Higher software licensing fees",
+"Decline in spontaneous collaboration and mentorship",
+"Difficulty tracking vacation days",
+"Excessive travel expenses"
+],
+correct: 1,
+explanation: "Managers report that 'spontaneous collaboration and mentorship suffer when teams never meet in person.'"
+},
+{
+id: 11, section: "listening", trackId: "L3", level: "B2",
+prompt: "How are forward-thinking companies changing their physical offices?",
+options: [
+"Selling all office real estate",
+"Adding more rows of isolated desks",
+"Redesigning them into collaborative hubs",
+"Converting them into residential apartments"
+],
+correct: 2,
+explanation: "Companies are redesigning offices into 'collaborative hubs rather than rows of isolated desks.'"
+},
+{
+id: 12, section: "listening", trackId: "L3", level: "B2",
+prompt: "How many days a week do employees typically prefer working from home in the studies mentioned?",
+options: ["One day", "Two or three days", "Five full days", "Every other Friday"],
+correct: 1,
+explanation: "The host states employees appreciate 'working from home two or three days a week.'"
+},
+
+// Track L4 (Q13-Q15)
+{
+id: 13, section: "listening", trackId: "L4", level: "C1",
+prompt: "What defines the 'urban heat island effect' described in the lecture?",
+options: [
+"Rural areas becoming warmer than coastal towns",
+"Metropolitan areas having notably higher temperatures than nearby rural areas",
+"Tropical islands experiencing sudden cold fronts",
+"Underground subway tunnels overheating in winter"
+],
+correct: 1,
+explanation: "The lecturer defines it as metropolitan areas exhibiting significantly higher temperatures than surrounding rural counterparts."
+},
+{
+id: 14, section: "listening", trackId: "L4", level: "C1",
+prompt: "Which factor is cited as a primary cause of this temperature disparity?",
+options: [
+"Excessive rainfall in city centers",
+"Replacing natural vegetation with heat-absorbing asphalt and concrete",
+"Overuse of solar panels on residential roofs",
+"Migration of wildlife into urban parks"
+],
+correct: 1,
+explanation: "The disparity stems primarily from replacing natural vegetation with heat-absorbing asphalt and concrete."
+},
+{
+id: 15, section: "listening", trackId: "L4", level: "C1",
+prompt: "What mitigation strategy does the speaker recommend?",
+options: [
+"Banning all public transportation",
+"Building taller glass skyscrapers",
+"Using reflective roofing and expanding urban tree canopies",
+"Relocating factories to rural farmland"
+],
+correct: 2,
+explanation: "Mitigation requires 'integrating reflective roofing materials and expanding urban tree canopies.'"
+},
+
+// ================= SECTION 2: READING (15 Questions) =================
+// Passage R1 (Q16-Q20)
+{
+id: 16, section: "reading", passageId: "R1", level: "A1",
+prompt: "What time does Marco wake up every morning?",
+options: ["4:00 AM", "5:30 AM", "6:30 AM", "7:30 AM"],
+correct: 0,
+explanation: "The text says: 'Every morning, he wakes up at 4:00 AM while the city is still quiet and dark.'"
+},
+{
+id: 17, section: "reading", passageId: "R1", level: "A1",
+prompt: "How does Marco get from his apartment to the bakery?",
+options: ["He drives a car", "He takes the bus", "He walks for ten minutes", "He rides a bicycle"],
+correct: 2,
+explanation: "The passage states: 'He walks ten minutes from his apartment to the bakery.'"
+},
+{
+id: 18, section: "reading", passageId: "R1", level: "A2",
+prompt: "What is Elena's role at the bakery?",
+options: [
+"She bakes the bread at 4:00 AM",
+"She arranges pastries and makes espresso",
+"She delivers orders to offices",
+"She manages the bakery's finances"
+],
+correct: 1,
+explanation: "Elena arrives at 6:30 AM 'to arrange the pastries in the display window and prepare espresso.'"
+},
+{
+id: 19, section: "reading", passageId: "R1", level: "A2",
+prompt: "When is the bakery busiest?",
+options: [
+"Between 4:00 AM and 5:30 AM",
+"Between 6:30 AM and 7:30 AM",
+"Between 7:30 AM and 9:00 AM",
+"Late in the afternoon"
+],
+correct: 2,
+explanation: "Their busiest time is 'between 7:30 AM and 9:00 AM, when office workers and students stop by for breakfast.'"
+},
+{
+id: 20, section: "reading", passageId: "R1", level: "A2",
+prompt: "Why does Marco enjoy his job despite the tiring work?",
+options: [
+"He finishes work very early",
+"He loves seeing regular customers smile",
+"He earns a very high salary",
+"He travels around Italy"
+],
+correct: 1,
+explanation: "Marco loves 'seeing his regular customers smile when they take their first bite.'"
+},
+
+// Passage R2 (Q21-Q25)
+{
+id: 21, section: "reading", passageId: "R2", level: "B1",
+prompt: "What is the main purpose of vertical farming?",
+options: [
+"To replace all farmers with robots",
+"To grow crops in stacked layers inside controlled indoor spaces",
+"To export tropical fruits to cold countries",
+"To reduce the size of modern cities"
+],
+correct: 1,
+explanation: "Vertical farms 'cultivate plants in stacked layers inside climate-controlled warehouses or skyscrapers.'"
+},
+{
+id: 22, section: "reading", passageId: "R2", level: "B1",
+prompt: "How much water can vertical farms save compared to traditional farming?",
+options: ["Up to 25 percent", "Up to 50 percent", "Up to 70 percent", "Up to 90 percent"],
+correct: 3,
+explanation: "Hydroponic and aeroponic systems reduce water consumption 'by up to 90 percent compared to traditional agriculture.'"
+},
+{
+id: 23, section: "reading", passageId: "R2", level: "B2",
+prompt: "Why are vertical farm harvests unaffected by droughts or frosts?",
+options: [
+"The crops are genetically modified to survive freezing",
+"They are grown indoors under controlled climate and LED lights",
+"They are only planted during the summer months",
+"They rely on underground rainwater reserves"
+],
+correct: 1,
+explanation: "Because crops are grown indoors under precisely calibrated LED lights and climate control, weather shifts don't affect them."
+},
+{
+id: 24, section: "reading", passageId: "R2", level: "B2",
+prompt: "What is mentioned as a major obstacle for vertical farming?",
+options: [
+"Lack of consumer interest",
+"High electricity expenses",
+"Shortage of warehouse buildings",
+"Excessive use of chemical pesticides"
+],
+correct: 1,
+explanation: "The passage notes: 'Critics point out that high electricity costs remain a major hurdle.'"
+},
+{
+id: 25, section: "reading", passageId: "R2", level: "B2",
+prompt: "In the final sentence, the word 'viable' is closest in meaning to:",
+options: ["Workable and sustainable", "Expensive and rare", "Temporary and risky", "Traditional and slow"],
+correct: 0,
+explanation: "'Commercially viable' means capable of working successfully and profitably in the market."
+},
+
+// Passage R3 (Q26-Q30)
+{
+id: 26, section: "reading", passageId: "R3", level: "B2",
+prompt: "How does the passage define 'confirmation bias'?",
+options: [
+"Refusing to make decisions without consulting experts",
+"The unconscious tendency to favor information that supports existing beliefs",
+"Changing one's opinion whenever new data appears",
+"The fear of making mistakes in corporate meetings"
+],
+correct: 1,
+explanation: "Confirmation bias is defined as 'the unconscious tendency to seek out, interpret, and recall information in a manner that validates pre-existing beliefs.'"
+},
+{
+id: 27, section: "reading", passageId: "R3", level: "C1",
+prompt: "What negative consequence can confirmation bias produce in organizations?",
+options: [
+"Increased employee turnover",
+"Intellectual echo chambers and reduced strategic adaptability",
+"Excessive spending on market research",
+"Delayed product manufacturing"
+],
+correct: 1,
+explanation: "The author warns that it 'can foster intellectual echo chambers and impede strategic adaptability.'"
+},
+{
+id: 28, section: "reading", passageId: "R3", level: "C1",
+prompt: "Which of the following is recommended to overcome confirmation bias?",
+options: [
+"Relying solely on intuition during board meetings",
+"Setting objective evaluation criteria before reviewing data",
+"Avoiding dissenting opinions to maintain harmony",
+"Treating initial hypotheses as proven facts"
+],
+correct: 1,
+explanation: "The text recommends 'establishing objective evaluation criteria prior to reviewing data.'"
+},
+{
+id: 29, section: "reading", passageId: "R3", level: "C1",
+prompt: "What does the author mean by treating hypotheses as 'provisional rather than definitive'?",
+options: [
+"Viewing initial ideas as tentative and open to revision",
+"Presenting theories with absolute certainty",
+"Ignoring hypotheses that lack immediate proof",
+"Delegating research tasks to junior staff"
+],
+correct: 0,
+explanation: "'Provisional' means temporary or subject to change based on further evidence, rather than final ('definitive')."
+},
+{
+id: 30, section: "reading", passageId: "R3", level: "C1",
+prompt: "What is the overall tone of Passage 3?",
+options: [
+"Humorous and satirical",
+"Analytical and advisory",
+"Nostalgic and emotional",
+"Skeptical of all scientific methods"
+],
+correct: 1,
+explanation: "The passage objectively analyzes a psychological phenomenon and provides structured advice on mitigating it."
+},
+
+// ================= SECTION 3: VOCABULARY & GRAMMAR (20 Questions) =================
+// A1 Level (Q31-Q34)
+{
+id: 31, section: "grammar", level: "A1",
+prompt: "My sister _____ in a hospital as a nurse.",
+options: ["work", "works", "working", "is work"],
+correct: 1,
+explanation: "With third-person singular subjects ('My sister' = she) in the present simple, we add '-s' to the verb: 'works'."
+},
+{
+id: 32, section: "grammar", level: "A1",
+prompt: "There aren't _____ apples left in the refrigerator.",
+options: ["some", "much", "any", "a"],
+correct: 2,
+explanation: "'Any' is used with plural countable nouns ('apples') in negative sentences."
+},
+{
+id: 33, section: "grammar", level: "A1",
+prompt: "We usually have dinner _____ 7:30 PM.",
+options: ["in", "on", "at", "to"],
+correct: 2,
+explanation: "We use the preposition 'at' before specific clock times (e.g., at 7:30 PM)."
+},
+{
+id: 34, section: "grammar", level: "A1",
+prompt: "Choose the opposite of the adjective 'expensive':",
+options: ["Cheap", "Heavy", "Fast", "Bright"],
+correct: 0,
+explanation: "'Cheap' (low in price) is the direct opposite of 'expensive'."
+},
+
+// A2 Level (Q35-Q38)
+{
+id: 35, section: "grammar", level: "A2",
+prompt: "While I _____ home yesterday, it suddenly started to rain.",
+options: ["walked", "was walking", "am walking", "have walked"],
+correct: 1,
+explanation: "The past continuous ('was walking') describes an ongoing background action interrupted by a short past event ('started')."
+},
+{
+id: 36, section: "grammar", level: "A2",
+prompt: "This laptop is much _____ than the one I bought last year.",
+options: ["fast", "faster", "fastest", "more fast"],
+correct: 1,
+explanation: "For one-syllable adjectives like 'fast', the comparative form before 'than' is 'faster'."
+},
+{
+id: 37, section: "grammar", level: "A2",
+prompt: "You _____ wear a seatbelt when driving; it's the law.",
+options: ["must", "might", "could", "would"],
+correct: 0,
+explanation: "'Must' expresses strong obligation or legal necessity."
+},
+{
+id: 38, section: "grammar", level: "A2",
+prompt: "Could you please _____ the lights before leaving the room?",
+options: ["turn off", "put on", "take up", "look after"],
+correct: 0,
+explanation: "'Turn off' means to switch off an electrical device or light."
+},
+
+// B1 Level (Q39-Q42)
+{
+id: 39, section: "grammar", level: "B1",
+prompt: "If she _____ earlier, she wouldn't have missed the morning train.",
+options: ["left", "has left", "had left", "would leave"],
+correct: 2,
+explanation: "Third conditional sentences ('wouldn't have missed') require the past perfect ('had left') in the 'if' clause."
+},
+{
+id: 40, section: "grammar", level: "B1",
+prompt: "I have lived in Cairo _____ more than eight years.",
+options: ["since", "for", "during", "from"],
+correct: 1,
+explanation: "'For' is used with a duration of time ('eight years'), whereas 'since' is used with a specific starting point."
+},
+{
+id: 41, section: "grammar", level: "B1",
+prompt: "The new software update will be _____ to all users next Monday.",
+options: ["released", "invented", "borrowed", "refused"],
+correct: 0,
+explanation: "'Released' is the standard collocation for making a new software version or product available to the public."
+},
+{
+id: 42, section: "grammar", level: "B1",
+prompt: "Despite _____ very tired, Ahmed stayed up to finish his presentation.",
+options: ["he was", "being", "to be", "of being"],
+correct: 1,
+explanation: "'Despite' is a preposition and must be followed by a noun phrase or gerund ('being')."
+},
+
+// B2 Level (Q43-Q46)
+{
+id: 43, section: "grammar", level: "B2",
+prompt: "By the time the rescue team arrived, the hikers _____ shelter in a cave.",
+options: ["already found", "have already found", "had already found", "will have found"],
+correct: 2,
+explanation: "The past perfect ('had already found') shows an action completed before another past point ('arrived')."
+},
+{
+id: 44, section: "grammar", level: "B2",
+prompt: "The board decided to _____ the merger until the financial audit is complete.",
+options: ["put off", "call off", "bring about", "give in"],
+correct: 0,
+explanation: "'Put off' means to postpone or delay something to a later time."
+},
+{
+id: 45, section: "grammar", level: "B2",
+prompt: "Not only _____ the sales target, but our team also reduced operating costs.",
+options: ["we exceeded", "did we exceed", "we did exceed", "exceeded we"],
+correct: 1,
+explanation: "When a sentence begins with a negative adverbial like 'Not only', subject-auxiliary inversion is required ('did we exceed')."
+},
+{
+id: 46, section: "grammar", level: "B2",
+prompt: "Her argument was so _____ that even the fiercest critics agreed with her proposal.",
+options: ["compelling", "ambiguous", "negligent", "trivial"],
+correct: 0,
+explanation: "'Compelling' means convincing, persuasive, and evoking strong agreement."
+},
+
+// C1 Level (Q47-Q50)
+{
+id: 47, section: "grammar", level: "C1",
+prompt: "Had the engineers anticipated the surge in traffic, the server crash _____.",
+options: [
+"could have been averted",
+"can be averted",
+"would avert",
+"had been averted"
+],
+correct: 0,
+explanation: "Inverted third conditional ('Had the engineers anticipated...') pairs with a passive modal perfect ('could have been averted')."
+},
+{
+id: 48, section: "grammar", level: "C1",
+prompt: "The committee's recommendations were largely dismissed as _____ to the core issue.",
+options: ["tangential", "indispensable", "unanimous", "coherent"],
+correct: 0,
+explanation: "'Tangential' means only slightly connected or irrelevant to the main subject."
+},
+{
+id: 49, section: "grammar", level: "C1",
+prompt: "It is imperative that every applicant _____ all supporting documents prior to the interview.",
+options: ["submits", "submit", "submitted", "will submit"],
+correct: 1,
+explanation: "Expressions of necessity like 'It is imperative that...' trigger the mandative subjunctive (base verb 'submit')."
+},
+{
+id: 50, section: "grammar", level: "C1",
+prompt: "Rather than _____ existing protocols, the new director overhauled the entire workflow.",
+options: ["tinkering with", "tinker to", "tinkered on", "to tinkering"],
+correct: 0,
+explanation: "'Tinkering with' means making small, casual adjustments—contrasting smoothly with 'overhauled'."
+}
+];
+
+// 4. APPLICATION STATE
+let currentIndex = 0;
+let userAnswers = new Array(questions.length).fill(null);
+let timerSeconds = 30 * 60; // 30 minutes
+let timerInterval = null;
+let isSpeaking = false;
+let speechRate = 1.0;
+let showTranscript = false;
+let candidateName = "";
+let candidateContact = "";
+
+// 5. START TEST
+function startTest() {
+candidateName = document.getElementById("candidate-name").value.trim();
+candidateContact = document.getElementById("candidate-contact").value.trim();
+
+document.getElementById("view-welcome").classList.add("hidden");
+document.getElementById("view-results").classList.add("hidden");
+document.getElementById("view-test").classList.remove("hidden");
+document.getElementById("header-test-controls").classList.remove("hidden");
+document.getElementById("header-progress-container").classList.remove("hidden");
+
+currentIndex = 0;
+startTimer();
+renderQuestion();
+updateProgressUI();
+}
+
+// 6. TIMER LOGIC
+function startTimer() {
+clearInterval(timerInterval);
+timerInterval = setInterval(() => {
+if (timerSeconds <= 0) {
+clearInterval(timerInterval);
+showToast("انتهى الوقت المخصص للاختبار! جاري عرض النتيجة...");
+finalizeAndGradeTest();
+return;
+}
+timerSeconds--;
+const mins = Math.floor(timerSeconds / 60);
+const secs = timerSeconds % 60;
+const formatted = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+const display = document.getElementById("timer-display");
+display.textContent = formatted;
+if (timerSeconds < 180) {
+display.classList.add("text-rose-400");
+}
+}, 1000);
+}
+
+// 7. SPEECH SYNTHESIS (AUDIO PLAYER FOR LISTENING)
+function playAudio(text) {
+if (!("speechSynthesis" in window)) {
+showToast("متصفحك لا يدعم التشغيل الصوتي التلقائي. يمكنك استخدام زر إظهار النص الصوتي.");
+return;
+}
+window.speechSynthesis.cancel();
+const utterance = new SpeechSynthesisUtterance(text);
+utterance.lang = "en-US";
+utterance.rate = speechRate;
+
+const voices = window.speechSynthesis.getVoices();
+const preferredVoice = voices.find(v => v.lang.includes("en-US") && (v.name.includes("Google") || v.name.includes("Natural") || v.name.includes("Samantha"))) || voices.find(v => v.lang.startsWith("en"));
+if (preferredVoice) utterance.voice = preferredVoice;
+
+utterance.onstart = () => {
+isSpeaking = true;
+updateAudioUIState();
+};
+utterance.onend = () => {
+isSpeaking = false;
+updateAudioUIState();
+};
+utterance.onerror = () => {
+isSpeaking = false;
+updateAudioUIState();
+};
+
+window.speechSynthesis.speak(utterance);
+}
+
+function stopAudio() {
+if ("speechSynthesis" in window) {
+window.speechSynthesis.cancel();
+}
+isSpeaking = false;
+updateAudioUIState();
+}
+
+function toggleSpeechRate() {
+speechRate = speechRate === 1.0 ? 0.85 : 1.0;
+const btn = document.getElementById("speed-toggle-btn");
+if (btn) btn.textContent = speechRate === 1.0 ? "1.0x عادي" : "0.85x بطيء";
+if (isSpeaking) {
+const q = questions[currentIndex];
+if (q && q.trackId) playAudio(listeningTracks[q.trackId].script);
+}
+}
+
+function toggleTranscriptVisibility() {
+showTranscript = !showTranscript;
+const box = document.getElementById("transcript-box");
+const btn = document.getElementById("transcript-toggle-btn");
+if (box && btn) {
+box.classList.toggle("hidden", !showTranscript);
+btn.textContent = showTranscript ? "إخفاء النص الصوتي" : "إظهار النص الصوتي (للمساعدة)";
+}
+}
+
+function updateAudioUIState() {
+const wave = document.getElementById("audio-waveform");
+const statusText = document.getElementById("audio-status-text");
+if (wave) {
+wave.classList.toggle("wave-active", isSpeaking);
+}
+if (statusText) {
+statusText.textContent = isSpeaking ? "جاري تشغيل المقطع الصوتي..." : "اضغط تشغيل للاستماع إلى المحادثة";
+}
+}
+
+// 8. RENDER CURRENT QUESTION
+function renderQuestion() {
+stopAudio();
+const q = questions[currentIndex];
+const stimulusPanel = document.getElementById("stimulus-panel");
+const questionPanel = document.getElementById("question-panel");
+
+// Update Question Header Metadata
+document.getElementById("q-number-badge").textContent = `سؤال ${q.id} من ${questions.length}`;
+document.getElementById("q-level-badge").textContent = `CEFR: ${q.level}`;
+
+const sectionNames = {
+listening: "1. مهارة الاستماع (Listening)",
+reading: "2. فهم المقروء (Reading)",
+grammar: "3. القواعد والمفردات (Grammar & Vocab)"
+};
+document.getElementById("q-section-label").textContent = sectionNames[q.section];
+
+// Configure Left Stimulus Panel based on Section
+if (q.section === "listening") {
+const track = listeningTracks[q.trackId];
+stimulusPanel.classList.remove("hidden");
+questionPanel.classList.remove("lg:col-span-12");
+questionPanel.classList.add("lg:col-span-7");
+
+stimulusPanel.innerHTML = `
+<div class="flex items-center justify-between gap-2 mb-4">
+<span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
+<svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+مشغل الاستماع التفاعلي
+</span>
+<span class="en-text text-xs font-bold text-slate-500">${track.level}</span>
+</div>
+
+<h3 class="en-text text-base sm:text-lg font-bold text-slate-900 mb-2">${track.title}</h3>
+<p class="text-xs text-slate-500 mb-5 leading-relaxed">استمع جيداً للمقطع الصوتي باللغة الإنجليزية ثم أجب عن الأسئلة المرتبطة به.</p>
+
+<!-- Audio Player Box -->
+<div class="bg-slate-900 text-white rounded-2xl p-5 mb-4">
+<div class="flex items-center justify-between mb-4">
+<span id="audio-status-text" class="text-xs text-teal-300 font-semibold">اضغط تشغيل للاستماع إلى المحادثة</span>
+<div id="audio-waveform" class="flex items-center gap-1 h-6">
+<span class="wave-bar"></span>
+<span class="wave-bar"></span>
+<span class="wave-bar"></span>
+<span class="wave-bar"></span>
+<span class="wave-bar"></span>
+<span class="wave-bar"></span>
+<span class="wave-bar"></span>
+</div>
+</div>
+
+<div class="flex flex-wrap items-center gap-2.5">
+<button type="button" onclick="playAudio(listeningTracks['${q.trackId}'].script)" class="flex-1 inline-flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-sm py-2.5 px-4 rounded-xl transition cursor-pointer">
+<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+<span>تشغيل الصوت</span>
+</button>
+
+<button type="button" onclick="stopAudio()" class="inline-flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs py-2.5 px-3.5 rounded-xl border border-slate-700 transition cursor-pointer">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1"></rect></svg>
+<span>إيقاف</span>
+</button>
+
+<button type="button" id="speed-toggle-btn" onclick="toggleSpeechRate()" class="inline-flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-teal-300 font-bold text-xs py-2.5 px-3 rounded-xl border border-slate-700 transition cursor-pointer">
+${speechRate === 1.0 ? "1.0x عادي" : "0.85x بطيء"}
+</button>
+</div>
+</div>
+
+<!-- Accessibility Transcript Toggle -->
+<div class="pt-2">
+<button type="button" id="transcript-toggle-btn" onclick="toggleTranscriptVisibility()" class="text-xs font-bold text-blue-600 hover:text-blue-800 underline cursor-pointer">
+${showTranscript ? "إخفاء النص الصوتي" : "إظهار النص الصوتي (للمساعدة)"}
+</button>
+<div id="transcript-box" class="${showTranscript ? "" : "hidden"} mt-3 p-4 rounded-xl bg-slate-50 border border-slate-200 en-text text-xs sm:text-sm text-slate-700 leading-relaxed">
+${track.script}
+</div>
+</div>
+`;
+} else if (q.section === "reading") {
+const passage = readingPassages[q.passageId];
+stimulusPanel.classList.remove("hidden");
+questionPanel.classList.remove("lg:col-span-12");
+questionPanel.classList.add("lg:col-span-7");
+
+stimulusPanel.innerHTML = `
+<div class="flex items-center justify-between gap-2 mb-3">
+<span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200">
+<svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+قطعة القراءة
+</span>
+<span class="en-text text-xs font-bold text-slate-500">${passage.level}</span>
+</div>
+
+<h3 class="en-text text-base sm:text-lg font-bold text-slate-900 mb-3">${passage.title}</h3>
+<div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 sm:p-5 max-h-[380px] overflow-y-auto">
+<p class="en-text text-sm sm:text-[15px] text-slate-800 leading-7">
+${passage.text}
+</p>
+</div>
+<p class="text-[11px] text-slate-400 mt-2.5">اقرأ النص بعناية ثم اختر الإجابة الأدق من الخيارات المقابلة.</p>
+`;
+} else {
+// Grammar & Vocabulary: Full-width clean layout
+stimulusPanel.classList.add("hidden");
+questionPanel.classList.remove("lg:col-span-7");
+questionPanel.classList.add("lg:col-span-12", "max-w-3xl", "mx-auto", "w-full");
+}
+
+if (q.section !== "grammar") {
+questionPanel.classList.remove("max-w-3xl", "mx-auto");
+}
+
+// Render Prompt & Options
+document.getElementById("q-prompt-en").textContent = q.prompt;
+const optionsContainer = document.getElementById("q-options-container");
+const letters = ["A", "B", "C", "D"];
+
+optionsContainer.innerHTML = q.options.map((optText, idx) => {
+const isSelected = userAnswers[currentIndex] === idx;
+return `
+<button type="button" onclick="selectOption(${idx})"
+class="en-text w-full flex items-center gap-3.5 p-4 rounded-2xl border-2 text-left transition cursor-pointer
+${isSelected
+? "border-teal-600 bg-teal-50/70 text-slate-900 shadow-sm"
+: "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 text-slate-800"}">
+<span class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-extrabold shrink-0 transition
+${isSelected ? "bg-teal-600 text-white" : "bg-slate-100 text-slate-600"}">
+${letters[idx]}
+</span>
+<span class="text-sm sm:text-base font-medium leading-snug">${optText}</span>
+</button>
+`;
+}).join("");
+
+// Update Navigation Buttons State
+document.getElementById("btn-prev").disabled = currentIndex === 0;
+const isLast = currentIndex === questions.length - 1;
+document.getElementById("btn-next").classList.toggle("hidden", isLast);
+
+updateSectionTabsUI();
+}
+
+// 9. SELECT ANSWER OPTION
+function selectOption(optionIdx) {
+userAnswers[currentIndex] = optionIdx;
+renderQuestion();
+updateProgressUI();
+}
+
+// 10. NAVIGATION FUNCTIONS
+function nextQuestion() {
+if (currentIndex < questions.length - 1) {
+currentIndex++;
+renderQuestion();
+}
+}
+
+function prevQuestion() {
+if (currentIndex > 0) {
+currentIndex--;
+renderQuestion();
+}
+}
+
+function jumpToQuestion(index) {
+currentIndex = index;
+renderQuestion();
+const modal = document.getElementById("navigator-modal");
+if (!modal.classList.contains("hidden")) {
+modal.classList.add("hidden");
+}
+}
+
+function jumpToSection(sectionKey) {
+const firstIndex = questions.findIndex(q => q.section === sectionKey);
+if (firstIndex !== -1) {
+currentIndex = firstIndex;
+renderQuestion();
+}
+}
+
+// 11. UPDATE PROGRESS & SECTION COUNTERS
+function updateProgressUI() {
+const answeredCount = userAnswers.filter(a => a !== null).length;
+const pct = Math.round((answeredCount / questions.length) * 100);
+
+document.getElementById("answered-badge").textContent = `${answeredCount} / ${questions.length}`;
+document.getElementById("overall-progress-bar").style.width = `${pct}%`;
+
+const listeningAns = questions.filter((q, i) => q.section === "listening" && userAnswers[i] !== null).length;
+const readingAns = questions.filter((q, i) => q.section === "reading" && userAnswers[i] !== null).length;
+const grammarAns = questions.filter((q, i) => q.section === "grammar" && userAnswers[i] !== null).length;
+
+document.getElementById("count-listening").textContent = `${listeningAns}/15`;
+document.getElementById("count-reading").textContent = `${readingAns}/15`;
+document.getElementById("count-grammar").textContent = `${grammarAns}/20`;
+}
+
+function updateSectionTabsUI() {
+const currentSec = questions[currentIndex].section;
+const tabs = {
+listening: document.getElementById("tab-listening"),
+reading: document.getElementById("tab-reading"),
+grammar: document.getElementById("tab-grammar")
+};
+
+Object.keys(tabs).forEach(key => {
+if (key === currentSec) {
+tabs[key].className = "section-tab flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 text-white shadow-sm transition cursor-pointer";
+} else {
+tabs[key].className = "section-tab flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer";
+}
+});
+}
+
+// 12. QUESTION NAVIGATOR MODAL
+function toggleNavigatorModal() {
+const modal = document.getElementById("navigator-modal");
+const isHidden = modal.classList.contains("hidden");
+if (isHidden) {
+renderNavigatorGrids();
+modal.classList.remove("hidden");
+} else {
+modal.classList.add("hidden");
+}
+}
+
+function renderNavigatorGrids() {
+const grids = {
+listening: document.getElementById("nav-grid-listening"),
+reading: document.getElementById("nav-grid-reading"),
+grammar: document.getElementById("nav-grid-grammar")
+};
+
+Object.values(grids).forEach(g => g.innerHTML = "");
+
+questions.forEach((q, idx) => {
+const isCurrent = idx === currentIndex;
+const isAnswered = userAnswers[idx] !== null;
+
+let btnClass = "bg-white border border-slate-300 text-slate-700 hover:bg-slate-100";
+if (isCurrent) {
+btnClass = "bg-slate-900 text-white border-slate-900 ring-2 ring-slate-400";
+} else if (isAnswered) {
+btnClass = "bg-teal-600 text-white border-teal-600";
+}
+
+const btn = document.createElement("button");
+btn.type = "button";
+btn.textContent = q.id;
+btn.className = `en-text py-2 rounded-xl text-xs font-bold transition cursor-pointer ${btnClass}`;
+btn.onclick = () => jumpToQuestion(idx);
+
+grids[q.section].appendChild(btn);
+});
+}
+
+// 13. SUBMIT & GRADING LOGIC
+function openSubmitConfirmModal() {
+const answeredCount = userAnswers.filter(a => a !== null).length;
+const unanswered = questions.length - answeredCount;
+const summaryEl = document.getElementById("submit-modal-summary");
+
+if (unanswered > 0) {
+summaryEl.innerHTML = `لقد أجبت على <strong class="text-slate-900">${answeredCount}</strong> من أصل <strong class="text-slate-900">50</strong> سؤالاً. يتبقى لديك <strong class="text-rose-600">${unanswered} سؤالاً</strong> دون إجابة. هل ترغب في إنهاء الاختبار الآن؟`;
+} else {
+summaryEl.innerHTML = `رائع! لقد أجبت على جميع الأسئلة (<strong class="text-teal-700">50 / 50</strong>). اضغط على اعتماد النتيجة لعرض مستواك المعتمد.`;
+}
+document.getElementById("submit-modal").classList.remove("hidden");
+}
+
+function closeSubmitConfirmModal() {
+document.getElementById("submit-modal").classList.add("hidden");
+}
+
+function finalizeAndGradeTest() {
+closeSubmitConfirmModal();
+clearInterval(timerInterval);
+stopAudio();
+
+let totalCorrect = 0;
+let listeningCorrect = 0;
+let readingCorrect = 0;
+let grammarCorrect = 0;
+
+questions.forEach((q, idx) => {
+if (userAnswers[idx] === q.correct) {
+totalCorrect++;
+if (q.section === "listening") listeningCorrect++;
+if (q.section === "reading") readingCorrect++;
+if (q.section === "grammar") grammarCorrect++;
+}
+});
+
+const percentage = Math.round((totalCorrect / questions.length) * 100);
+
+// Determine CEFR Level accurately based on score out of 50
+let cefr = {
+code: "A1",
+title: "Beginner",
+heading: "المستوى المبتدئ (A1 - Beginner)",
+desc: "يمكنك فهم واستخدام التعبيرات اليومية المألوفة والعبارات الأساسية جداً، والتعريف بنفسك وطرح أسئلة بسيطة حول التفاصيل الشخصية."
+};
+
+if (totalCorrect >= 43) {
+cefr = {
+code: "C1",
+title: "Advanced",
+heading: "المستوى المتقدم (C1 - Advanced)",
+desc: "تتمتع بطلاقة لغوية عالية وقدرة ممتازة على فهم النصوص المعقدة والطويلة واستيعاب المعاني الضمنية، والتعبير عن أفكارك بدقة واحترافية في البيئات الأكاديمية والمهنية."
+};
+} else if (totalCorrect >= 34) {
+cefr = {
+code: "B2",
+title: "Upper-Intermediate",
+heading: "المستوى فوق المتوسط (B2 - Upper-Intermediate)",
+desc: "يمكنك فهم الأفكار الرئيسية للنصوص المعقدة في المواضيع الملموسة والمجردة، والتفاعل بطلاقة وتلقائية مع المتحدثين الأصليين، وكتابة نصوص واضحة ومفصلة."
+};
+} else if (totalCorrect >= 23) {
+cefr = {
+code: "B1",
+title: "Intermediate",
+heading: "المستوى المتوسط (B1 - Intermediate)",
+desc: "تستطيع فهم النقاط الرئيسية عند استخدام لغة واضحة في مواقف العمل والدراسة والسفر، والتعامل مع معظم المواقف اليومية، وصياغة نصوص مترابطة حول مواضيع مألوفة."
+};
+} else if (totalCorrect >= 12) {
+cefr = {
+code: "A2",
+title: "Elementary",
+heading: "المستوى الأساسي (A2 - Elementary)",
+desc: "يمكنك فهم الجمل والتعبيرات شائعة الاستخدام المرتبطة بالمجالات ذات الصلة المباشرة (مثل التسوق، العمل، الأسرة)، والتواصل في المهام البسيطة والروتينية."
+};
+}
+
+// Switch to Results View
+document.getElementById("view-test").classList.add("hidden");
+document.getElementById("header-test-controls").classList.add("hidden");
+document.getElementById("header-progress-container").classList.add("hidden");
+document.getElementById("view-results").classList.remove("hidden");
+
+// Populate Certificate Data
+const today = new Date().toLocaleDateString("ar-EG", { year: "numeric", month: "long", day: "numeric" });
+const namePart = candidateName ? `المتقدم: ${candidateName} | ` : "";
+document.getElementById("res-candidate-meta").textContent = `${namePart}تاريخ التقييم: ${today}`;
+
+document.getElementById("res-cefr-code").textContent = cefr.code;
+document.getElementById("res-cefr-title").textContent = cefr.title;
+document.getElementById("res-total-score").textContent = totalCorrect;
+document.getElementById("res-percentage").textContent = `${percentage}%`;
+document.getElementById("res-level-heading").textContent = cefr.heading;
+document.getElementById("res-level-desc").textContent = cefr.desc;
+
+// Section Breakdown Bars
+document.getElementById("res-listening-score").textContent = `${listeningCorrect} / 15`;
+document.getElementById("res-listening-bar").style.width = `${Math.round((listeningCorrect / 15) * 100)}%`;
+
+document.getElementById("res-reading-score").textContent = `${readingCorrect} / 15`;
+document.getElementById("res-reading-bar").style.width = `${Math.round((readingCorrect / 15) * 100)}%`;
+
+document.getElementById("res-grammar-score").textContent = `${grammarCorrect} / 20`;
+document.getElementById("res-grammar-bar").style.width = `${Math.round((grammarCorrect / 20) * 100)}%`;
+
+window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// 14. ANSWER REVIEW RENDERER
+function toggleAnswerReview() {
+const reviewSection = document.getElementById("answer-review-section");
+const btnText = document.getElementById("toggle-review-text");
+const isHidden = reviewSection.classList.contains("hidden");
+
+if (isHidden) {
+renderReviewList("all");
+reviewSection.classList.remove("hidden");
+btnText.textContent = "إخفاء مراجعة الإجابات";
+reviewSection.scrollIntoView({ behavior: "smooth" });
+} else {
+reviewSection.classList.add("hidden");
+btnText.textContent = "عرض مراجعة الإجابات والتصحيح";
+}
+}
+
+function renderReviewList(filterMode) {
+const container = document.getElementById("review-items-list");
+const letters = ["A", "B", "C", "D"];
+const filtered = questions.map((q, idx) => ({ q, idx })).filter(({ q, idx }) => {
+if (filterMode === "wrong") return userAnswers[idx] !== q.correct;
+return true;
+});
+
+if (filtered.length === 0) {
+container.innerHTML = `<div class="p-6 text-center text-sm font-bold text-teal-700 bg-teal-50 rounded-2xl">ممتاز! لا توجد أي أخطاء لعرضها.</div>`;
+return;
+}
+
+container.innerHTML = filtered.map(({ q, idx }) => {
+const userAns = userAnswers[idx];
+const isCorrect = userAns === q.correct;
+const userText = userAns !== null ? `${letters[userAns]}. ${q.options[userAns]}` : "لم تتم الإجابة (Unanswered)";
+const correctText = `${letters[q.correct]}. ${q.options[q.correct]}`;
+
+return `
+<div class="p-4 sm:p-5 rounded-2xl border ${isCorrect ? "border-emerald-200 bg-emerald-50/30" : "border-rose-200 bg-rose-50/30"}">
+<div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+<div class="flex items-center gap-2">
+<span class="text-xs font-extrabold px-2.5 py-0.5 rounded-lg bg-slate-900 text-white">سؤال ${q.id}</span>
+<span class="en-text text-xs font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700">${q.level}</span>
+</div>
+<span class="text-xs font-bold px-2.5 py-1 rounded-full ${isCorrect ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"}">
+${isCorrect ? "إجابة صحيحة ✓" : "إجابة غير صحيحة ✕"}
+</span>
+</div>
+
+<p class="en-text text-sm sm:text-base font-bold text-slate-900 mb-3">${q.prompt}</p>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm mb-3">
+<div class="en-text p-2.5 rounded-xl bg-white border ${isCorrect ? "border-emerald-300 text-emerald-800" : "border-rose-300 text-rose-800"}">
+<strong class="block text-[11px] uppercase tracking-wider opacity-70">Your Answer:</strong>
+${userText}
+</div>
+<div class="en-text p-2.5 rounded-xl bg-white border border-emerald-300 text-emerald-900">
+<strong class="block text-[11px] uppercase tracking-wider opacity-70">Correct Answer:</strong>
+${correctText}
+</div>
+</div>
+
+<p class="en-text text-xs text-slate-600 bg-white/80 p-2.5 rounded-xl border border-slate-200/80">
+<strong>Explanation:</strong> ${q.explanation}
+</p>
+</div>
+`;
+}).join("");
+}
+
+// 15. COPY RESULT & RETAKE
+function copyResultSummary() {
+const score = document.getElementById("res-total-score").textContent;
+const pct = document.getElementById("res-percentage").textContent;
+const code = document.getElementById("res-cefr-code").textContent;
+const title = document.getElementById("res-cefr-title").textContent;
+const nameLine = candidateName ? `الاسم: ${candidateName}\n` : "";
+
+const summary = `نتيجة اختبار تحديد مستوى اللغة الإنجليزية - Translo\n${nameLine}الدرجة: ${score}/50 (${pct})\nالمستوى المعتمد: ${code} (${title})`;
+
+const tempInput = document.createElement("textarea");
+tempInput.value = summary;
+document.body.appendChild(tempInput);
+tempInput.select();
+try {
+document.execCommand("copy");
+showToast("تم نسخ ملخص النتيجة إلى الحافظة بنجاح!");
+} catch (e) {
+showToast("تعذر النسخ التلقائي، يمكنك طباعة التقرير.");
+}
+document.body.removeChild(tempInput);
+}
+
+function retakeTest() {
+userAnswers = new Array(questions.length).fill(null);
+currentIndex = 0;
+timerSeconds = 30 * 60;
+showTranscript = false;
+document.getElementById("answer-review-section").classList.add("hidden");
+document.getElementById("toggle-review-text").textContent = "عرض مراجعة الإجابات والتصحيح";
+document.getElementById("timer-display").classList.remove("text-rose-400");
+startTest();
+}
+
+// 16. NON-BLOCKING TOAST HELPERS
+let toastTimeout = null;
+function showToast(msg) {
+const banner = document.getElementById("toast-banner");
+document.getElementById("toast-message").textContent = msg;
+banner.classList.remove("hidden");
+clearTimeout(toastTimeout);
+toastTimeout = setTimeout(() => {
+banner.classList.add("hidden");
+}, 4500);
+}
+
+function hideToast() {
+document.getElementById("toast-banner").classList.add("hidden");
+}
+
+// Preload speech synthesis voices if available
+if ("speechSynthesis" in window) {
+window.speechSynthesis.onvoiceschanged = () => {
+window.speechSynthesis.getVoices();
+};
+}
+</script>
+</body>
+</html>
